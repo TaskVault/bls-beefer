@@ -1,8 +1,8 @@
 [workspace.package]
 license = "MIT-0"
-authors = ["Parity Technologies <admin@parity.io>"]
+authors = ["Polycule Labs Technologies <polyculelabs@riseup.net>"]
 homepage = "https://substrate.io"
-repository = "https://github.com/paritytech/polkadot-sdk-solochain-template.git"
+repository = "https://github.com/w3f/bls-beefer.git"
 edition = "2021"
 
 [workspace]

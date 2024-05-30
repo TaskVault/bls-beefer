@@ -160,6 +160,8 @@ pub fn new_full<
 		);
 	net_config.add_notification_protocol(grandpa_protocol_config);
 
+	net_config.network.extra_sets.push(beefy_gadget::beefy_peers_set_config());
+
 	let warp_sync = Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
 		backend.clone(),
 		grandpa_link.shared_authority_set().clone(),
@@ -208,13 +210,22 @@ pub fn new_full<
 	let enable_grandpa = !config.disable_grandpa;
 	let prometheus_registry = config.prometheus_registry().cloned();
 
+	let (signed_commitment_sender, signed_commitment_stream) =
+		beefy_gadget::notification::BeefySignedCommitmentStream::channel();
+
 	let rpc_extensions_builder = {
 		let client = client.clone();
 		let pool = transaction_pool.clone();
 
+		Box::new(move |deny_unsafe, subscription_executor| {
+			let beefy = crate::rpc::BeefyDeps {
+				signed_commitment_stream: signed_commitment_stream.clone(),
+				subscription_executor,
+			};
+
 		Box::new(move |deny_unsafe, _| {
 			let deps =
-				crate::rpc::FullDeps { client: client.clone(), pool: pool.clone(), deny_unsafe };
+				crate::rpc::FullDeps { client: client.clone(), pool: pool.clone(), deny_unsafe, beefy, };
 			crate::rpc::create_full(deps).map_err(Into::into)
 		})
 	};
@@ -298,6 +309,30 @@ pub fn new_full<
 			telemetry: telemetry.as_ref().map(|x| x.handle()),
 			protocol_name: grandpa_protocol_name,
 		};
+	// if the node isn't actively participating in consensus then it doesn't
+	// need a keystore, regardless of which protocol we use below.
+	let keystore = if role.is_authority() {
+		Some(keystore_container.sync_keystore())
+	} else {
+		None
+	};
+
+	let beefy_params = beefy_gadget::BeefyParams {
+		client,
+		backend,
+		key_store: keystore.clone(),
+		network: network.clone(),
+		signed_commitment_sender,
+		min_block_delta: 4,
+		prometheus_registry: prometheus_registry.clone(),
+	};
+
+	// Start the BEEFY bridge gadget.
+	task_manager.spawn_essential_handle().spawn_blocking(
+		"beefy-gadget",
+		None,
+		beefy_gadget::start_beefy_gadget::<_, _, _, _>(beefy_params),
+	);
 
 		// start the full GRANDPA voter
 		// NOTE: non-authorities could run the GRANDPA observer protocol, but at
