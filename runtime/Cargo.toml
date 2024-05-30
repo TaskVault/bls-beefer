@@ -1,6 +1,6 @@
 [package]
-name = "solochain-template-runtime"
-description = "A solochain runtime template built with Substrate, part of Polkadot Sdk. (polkadot v1.12.0)"
+name = "bls-beefer-runtime"
+description = "Runtime for BLS Beefer demos generation of BLS Signature with BEEFY"
 version = "0.1.0"
 license = "MIT-0"
 authors.workspace = true
@@ -54,7 +54,7 @@ sp-offchain = { version = "32.0.0", default-features = false }
 sp-runtime = { version = "37.0.0", default-features = false, features = ["serde"] }
 sp-session = { version = "33.0.0", default-features = false }
 sp-std = { version = "14.0.0", default-features = false }
-sp-application-crypto = sp-application-crypto = { default-features = false , version = "27.0.0" }
+sp-application-crypto = { default-features = false , version = "27.0.0" }
 sp-storage = { version = "21.0.0", default-features = false }
 sp-transaction-pool = { version = "32.0.0", default-features = false }
 sp-version = { version = "35.0.0", default-features = false, features = ["serde"] }
@@ -77,15 +77,15 @@ substrate-wasm-builder = { version = "22.0.0", optional = true }
 
 [features]
 default = ["std"]
-    
+
 std = [
 	"codec/std",    
 	"scale-info/std",
 
-    "beefy-primitives/std",
-￼	"binary-merkle-tree/std",
+"sp-consensus-beefy/std",
+"binary-merkle-tree/std",
 
-	"frame-executive/std",
+"frame-executive/std",
 	"frame-support/std",
 	"frame-system-benchmarking?/std",
 	"frame-system-rpc-runtime-api/std",
