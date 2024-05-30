@@ -184,6 +184,23 @@ impl frame_system::Config for Runtime {
     type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
+// impl pallet_session::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type ValidatorId = AccountId;
+// 	type ValidatorIdOf = pallet_staking::StashOf<Self>;
+// 	type ShouldEndSession = Aura;
+// 	type NextSessionRotation = Auran;
+// 	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
+// 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
+// 	type Keys = SessionKeys;
+// 	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
+// }
+
+impl pallet_session::historical::Config for Runtime {
+	type FullIdentification = pallet_staking::Exposure<AccountId, Balance>;
+	type FullIdentificationOf = pallet_staking::ExposureOf<Runtime>;
+}
+
 impl pallet_aura::Config for Runtime {
     type AuthorityId = AuraId;
     type DisabledValidators = ();
@@ -714,7 +731,7 @@ impl_runtime_apis! {
             _set_id: beefy_primitives::ValidatorSetId,
             authority_id: BeefyId,
         ) -> Option<beefy_primitives::OpaqueKeyOwnershipProof> {
-            use parity_scale_codec::Encode;
+            use codec::Encode;
 
             Historical::prove((beefy_primitives::KEY_TYPE, authority_id))
                 .map(|p| p.encode())

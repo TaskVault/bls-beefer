@@ -40,6 +40,7 @@ pallet-transaction-payment = { version = "34.0.0", default-features = false }
 pallet-beefy = { default-features = false , version = "25.0.0" }
 pallet-beefy-mmr = { default-features = false , version = "25.0.0" }
 pallet-mmr = { default-features = false , version = "24.0.0" }
+pallet-session = { default-features = false , version = "25.0.0" }
 
 # primitives
 sp-api = { version = "32.0.0", default-features = false }
@@ -48,11 +49,11 @@ sp-consensus-aura = { version = "0.38.0", default-features = false, features = [
 sp-consensus-grandpa = { version = "19.0.0", default-features = false, features = ["serde"] }
 sp-consensus-beefy = { version = "10.0.0", default-features = false, features = ["serde"] }
 sp-core = { version = "33.0.1", default-features = false, features = ["serde"] }
+sp-session = { default-features = false , version = "33.0.0" }
 binary-merkle-tree = { default-features = false , version = "10.0.0" }
 sp-inherents = { version = "32.0.0", default-features = false }
 sp-offchain = { version = "32.0.0", default-features = false }
 sp-runtime = { version = "37.0.0", default-features = false, features = ["serde"] }
-sp-session = { version = "33.0.0", default-features = false }
 sp-std = { version = "14.0.0", default-features = false }
 sp-application-crypto = { default-features = false , version = "27.0.0" }
 sp-storage = { version = "21.0.0", default-features = false }
@@ -68,6 +69,8 @@ pallet-transaction-payment-rpc-runtime-api = { version = "34.0.0", default-featu
 # Used for runtime benchmarking
 frame-benchmarking = { version = "34.0.0", default-features = false, optional = true }
 frame-system-benchmarking = { version = "34.0.0", default-features = false, optional = true }
+
+pallet-session-benchmarking = { default-features = false, optional = true , version = "25.0.0" }
 
 # The pallet in this template.
 pallet-template = { path = "../pallets/template", default-features = false, version = "0.1.0" }
@@ -105,6 +108,8 @@ std = [
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
+	"pallet-session/std",
+	"pallet-session-benchmarking?/std",
 
 	"sp-api/std",
     "sp-application-crypto/std",
@@ -137,6 +142,7 @@ runtime-benchmarks = [
 	"pallet-template/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"pallet-session-benchmarking/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -155,4 +161,6 @@ try-runtime = [
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",
-]
+    "pallet-session/try-runtime",
+]	
+
