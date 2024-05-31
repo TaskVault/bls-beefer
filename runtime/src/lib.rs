@@ -357,32 +357,32 @@ impl pallet_template::Config for Runtime {
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime! {
-	pub enum Runtime
-	{
-		// Basic stuff; balances is uncallable initially.
-		System: frame_system::{Pallet, Call, Storage, Config<T>, Event<T>} = 0,
+    pub enum Runtime
+    {
+        // Basic stuff; balances is uncallable initially.
+        System: frame_system::{Pallet, Call, Storage, Config<T>, Event<T>} = 0,
 
-		// Aura must be before session.
-		Aura: pallet_aura::{Pallet, Storage, Config<T>, } = 2,
+        // Aura must be before session.
+        Aura: pallet_aura::{Pallet, Storage, Config<T>, } = 2,
 
-		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 5,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 32,
+        Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 3,
+        Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 5,
+        TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 32,
 
-		// BEEFY Bridges support.
-		Beefy: pallet_beefy::{Pallet, Call, Storage, Config<T>, ValidateUnsigned} = 200,
-		// MMR leaf construction must be before session in order to have leaf contents
-		// refer to block<N-1> consistently. see substrate issue #11797 for details.
-		Mmr: pallet_mmr::{Pallet, Storage} = 201,
-		BeefyMmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = 202,
+        // BEEFY Bridges support.
+        Beefy: pallet_beefy::{Pallet, Call, Storage, Config<T>, ValidateUnsigned} = 200,
+        // MMR leaf construction must be before session in order to have leaf contents
+        // refer to block<N-1> consistently. see substrate issue #11797 for details.
+        Mmr: pallet_mmr::{Pallet, Storage} = 201,
+        BeefyMmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = 202,
 
-		Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
-		Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config<T>, Event, ValidateUnsigned} = 11,
+        Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
+        Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config<T>, Event, ValidateUnsigned} = 11,
 
         Historical: session_historical::{Pallet} = 33,
 
         Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>} = 203,
-	}
+    }
 }
 
 // #[frame_support::runtime]
@@ -438,7 +438,6 @@ construct_runtime! {
 //     #[runtime::pallet_index(10)]
 //     pub type TemplateModule = pallet_template;
 // }
-
 
 /// The address format for describing accounts.
 pub type Address = sp_runtime::MultiAddress<AccountId, ()>;
