@@ -281,6 +281,7 @@ impl pallet_mmr::Config for Runtime {
 
 /// MMR helper types.
 mod mmr {
+    use super::Runtime;
     pub use pallet_mmr::primitives::*;
 
     pub type Leaf = <<Runtime as pallet_mmr::Config>::LeafData as LeafDataProvider>::LeafData;
