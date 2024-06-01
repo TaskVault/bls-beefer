@@ -34,13 +34,12 @@ frame-executive = { version = "34.0.0", default-features = false }
 pallet-aura = { version = "33.0.0", default-features = false }
 pallet-balances = { version = "35.0.0", default-features = false }
 pallet-grandpa = { version = "34.0.0", default-features = false }
+pallet-beefy = { version = "34.0.0", default-features = false }
+pallet-beefy-mmr = { version = "34.0.0", default-features = false }
+pallet-mmr = { version = "33.0.0", default-features = false }
 pallet-sudo = { version = "34.0.0", default-features = false }
 pallet-timestamp = { version = "33.0.0", default-features = false }
 pallet-transaction-payment = { version = "34.0.0", default-features = false }
-pallet-beefy = { default-features = false , version = "34.0.0" }
-pallet-beefy-mmr = { default-features = false , version = "34.0.0" }
-pallet-mmr = { default-features = false , version = "33.0.0" }
-pallet-session = { default-features = false , version = "34.0.0", features = ["historical"]}
 
 # primitives
 sp-api = { version = "32.0.0", default-features = false }
@@ -49,18 +48,16 @@ sp-consensus-aura = { version = "0.38.0", default-features = false, features = [
 sp-consensus-grandpa = { version = "19.0.0", default-features = false, features = ["serde"] }
 sp-consensus-beefy = { version = "19.0.0", default-features = false, features = ["serde"] }
 sp-core = { version = "33.0.1", default-features = false, features = ["serde"] }
-sp-session = { default-features = false , version = "33.0.0" }
-binary-merkle-tree = { default-features = false , version = "15.0.0" }
+sp-staking = { version = "32.0.0", default-features = false, features = ["serde"] }
 sp-inherents = { version = "32.0.0", default-features = false }
 sp-offchain = { version = "32.0.0", default-features = false }
 sp-runtime = { version = "37.0.0", default-features = false, features = ["serde"] }
+sp-session = { version = "33.0.0", default-features = false }
 sp-std = { version = "14.0.0", default-features = false }
-sp-application-crypto = { default-features = false , version = "36.0.0" }
 sp-storage = { version = "21.0.0", default-features = false }
 sp-transaction-pool = { version = "32.0.0", default-features = false }
 sp-version = { version = "35.0.0", default-features = false, features = ["serde"] }
 sp-genesis-builder = { version = "0.13.0", default-features = false }
-
 
 # RPC related
 frame-system-rpc-runtime-api = { version = "32.0.0", default-features = false }
@@ -70,8 +67,6 @@ pallet-transaction-payment-rpc-runtime-api = { version = "34.0.0", default-featu
 frame-benchmarking = { version = "34.0.0", default-features = false, optional = true }
 frame-system-benchmarking = { version = "34.0.0", default-features = false, optional = true }
 
-pallet-session-benchmarking = { default-features = false, optional = true , version = "34.0.0" }
-
 # The pallet in this template.
 pallet-template = { path = "../pallets/template", default-features = false, version = "0.1.0" }
 
@@ -79,37 +74,35 @@ pallet-template = { path = "../pallets/template", default-features = false, vers
 substrate-wasm-builder = { version = "22.0.0", optional = true }
 
 [features]
-default = [ "std" ]
-
+default = ["std"]
 std = [
-	"binary-merkle-tree/std",
 	"codec/std",
-	"frame-benchmarking?/std",
+	"scale-info/std",
+
 	"frame-executive/std",
 	"frame-support/std",
 	"frame-system-benchmarking?/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
+
+	"frame-benchmarking?/std",
 	"frame-try-runtime?/std",
+
 	"pallet-aura/std",
 	"pallet-balances/std",
-	"pallet-beefy-mmr/std",
-	"pallet-beefy/std",
 	"pallet-grandpa/std",
+	"pallet-beefy/std",
+	"pallet-beefy-mmr/std",
 	"pallet-mmr/std",
-	"pallet-session-benchmarking?/std",
-	"pallet-session/std",
 	"pallet-sudo/std",
 	"pallet-template/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
-	"scale-info/std",
+
 	"sp-api/std",
-	"sp-application-crypto/std",
 	"sp-block-builder/std",
 	"sp-consensus-aura/std",
-	"sp-consensus-beefy/std",
 	"sp-consensus-grandpa/std",
 	"sp-core/std",
 	"sp-genesis-builder/std",
@@ -121,6 +114,7 @@ std = [
 	"sp-storage/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
+
 	"substrate-wasm-builder",
 ]
 
@@ -132,7 +126,6 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
 	"pallet-mmr/runtime-benchmarks",
-	"pallet-session-benchmarking/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-template/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -150,7 +143,6 @@ try-runtime = [
 	"pallet-beefy/try-runtime",
 	"pallet-grandpa/try-runtime",
 	"pallet-mmr/try-runtime",
-	"pallet-session/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-template/try-runtime",
 	"pallet-timestamp/try-runtime",

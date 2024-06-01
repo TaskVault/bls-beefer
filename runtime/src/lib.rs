@@ -11,10 +11,12 @@ use sp_consensus_beefy::{
     ecdsa_crypto::{AuthorityId as BeefyId, Signature as BeefySignature},
     mmr::{BeefyDataProvider, MmrLeafVersion},
 };
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H256};
+use sp_core::H256;
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_runtime::traits::Keccak256;
 use sp_runtime::{
     create_runtime_str, generic, impl_opaque_keys,
-    traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, Keccak256, NumberFor, One, Verify},
+    traits::{BlakeTwo256, Block as BlockT, IdentifyAccount, NumberFor, One, Verify},
     transaction_validity::{TransactionSource, TransactionValidity},
     ApplyExtrinsicResult, MultiSignature,
 };
@@ -22,8 +24,6 @@ use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-
-use pallet_session::historical as session_historical;
 
 use frame_support::genesis_builder_helper::{build_state, get_preset};
 pub use frame_support::{
@@ -90,7 +90,7 @@ pub mod opaque {
         pub struct SessionKeys {
             pub aura: Aura,
             pub grandpa: Grandpa,
-            pub beey: Beefy,
+            pub beefy: Beefy,
         }
     }
 }
@@ -155,7 +155,6 @@ parameter_types! {
         ::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
     pub const SS58Prefix: u8 = 42;
     pub const MaxAuthorities: u32 = 100_000;
-
 }
 
 /// The default types are being injected by [`derive_impl`](`frame_support::derive_impl`) from
@@ -187,23 +186,6 @@ impl frame_system::Config for Runtime {
     type SS58Prefix = SS58Prefix;
     type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
-
-// impl pallet_session::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type ValidatorId = AccountId;
-// 	type ValidatorIdOf = pallet_staking::StashOf<Self>;
-// 	type ShouldEndSession = Aura;
-// 	type NextSessionRotation = Auran;
-// 	type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, Staking>;
-// 	type SessionHandler = <SessionKeys as OpaqueKeys>::KeyTypeIdProviders;
-// 	type Keys = SessionKeys;
-// 	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
-// }
-
-// impl pallet_session::historical::Config for Runtime {
-// 	type FullIdentification = pallet_staking::Exposure<AccountId, Balance>;
-// 	type FullIdentificationOf = pallet_staking::ExposureOf<Runtime>;
-// }
 
 impl pallet_aura::Config for Runtime {
     type AuthorityId = AuraId;
@@ -255,28 +237,67 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-    // pub BeefySetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
+    pub FeeMultiplier: Multiplier = Multiplier::one();
+}
+
+impl pallet_transaction_payment::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
+    type OperationalFeeMultiplier = ConstU8<5>;
+    type WeightToFee = IdentityFee<Balance>;
+    type LengthToFee = IdentityFee<Balance>;
+    type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
+}
+
+impl pallet_sudo::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
+}
+
+/// Configure the pallet-template in pallets/template.
+impl pallet_template::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
+}
+use sp_staking::{EraIndex, SessionIndex};
+parameter_types! {
+    pub const SessionsPerEra: SessionIndex = 6;
+    pub const BondingDuration: EraIndex = 28;
+}
+
+parameter_types! {
+    pub BeefySetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
 }
 
 impl pallet_beefy::Config for Runtime {
     type BeefyId = BeefyId;
-    // type MaxAuthorities = MaxAuthorities;
-    // //type MaxNominators = MaxNominatorRewardedPerValidator;
-    // type MaxSetIdSessionEntries = BeefySetIdSessionEntries;
-    // type OnNewValidatorSet = BeefyMmrLeaf;
-    // type WeightInfo = ();
+    type MaxAuthorities = MaxAuthorities;
+    type MaxNominators = ConstU32<0>;
+    type MaxSetIdSessionEntries = BeefySetIdSessionEntries;
+    type OnNewValidatorSet = BeefyMmrLeaf;
+    type WeightInfo = ();
 
-    // type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, BeefyId)>>::Proof;
-    // type EquivocationReportSystem =
-    //     pallet_beefy::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+    type KeyOwnerProof = sp_core::Void;
+    type EquivocationReportSystem = ();
+}
+
+impl pallet_beefy_mmr::Config for Runtime {
+    type LeafVersion = LeafVersion;
+    type BeefyAuthorityToMerkleLeaf = pallet_beefy_mmr::BeefyEcdsaToEthereum;
+    type LeafExtra = H256;
+    type BeefyDataProvider = ParaHeadsRootProvider;
 }
 
 impl pallet_mmr::Config for Runtime {
     const INDEXING_PREFIX: &'static [u8] = mmr::INDEXING_PREFIX;
     type Hashing = Keccak256;
-    type OnNewRoot = pallet_beefy_mmr::DepositBeefyDigest<Runtime>;
+    // type OnNewRoot = pallet_beefy_mmr::DepositBeefyDigest<Runtime>;
+    type OnNewRoot = ();
     type WeightInfo = ();
-    type LeafData = pallet_beefy_mmr::Pallet<Runtime>;
+    // type LeafData = pallet_beefy_mmr::Pallet<Runtime>;
+    type LeafData = ();
+    type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
 }
 
 /// MMR helper types.
@@ -311,6 +332,7 @@ parameter_types! {
 pub struct ParaHeadsRootProvider;
 impl BeefyDataProvider<H256> for ParaHeadsRootProvider {
     fn extra_data() -> H256 {
+        H256::default()
         // let mut para_heads: Vec<(u32, Vec<u8>)> = Paras::parachains()
         //     .into_iter()
         //     .filter_map(|id| Paras::para_head(&id).map(|head| (id.into(), head.0)))
@@ -323,39 +345,6 @@ impl BeefyDataProvider<H256> for ParaHeadsRootProvider {
     }
 }
 
-impl pallet_beefy_mmr::Config for Runtime {
-    type LeafVersion = LeafVersion;
-    type BeefyAuthorityToMerkleLeaf = pallet_beefy_mmr::BeefyEcdsaToEthereum;
-    type LeafExtra = H256;
-    type BeefyDataProvider = ParaHeadsRootProvider;
-}
-
-parameter_types! {
-    pub FeeMultiplier: Multiplier = Multiplier::one();
-}
-
-impl pallet_transaction_payment::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
-    type OperationalFeeMultiplier = ConstU8<5>;
-    type WeightToFee = IdentityFee<Balance>;
-    type LengthToFee = IdentityFee<Balance>;
-    type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
-}
-
-impl pallet_sudo::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type RuntimeCall = RuntimeCall;
-    type WeightInfo = pallet_sudo::weights::SubstrateWeight<Runtime>;
-}
-
-/// Configure the pallet-template in pallets/template.
-impl pallet_template::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
-}
-
-// Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime! {
     pub enum Runtime
     {
@@ -376,68 +365,14 @@ construct_runtime! {
         Mmr: pallet_mmr::{Pallet, Storage} = 201,
         BeefyMmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = 202,
 
-        Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
+        // Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
         Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config<T>, Event, ValidateUnsigned} = 11,
 
-        Historical: session_historical::{Pallet} = 33,
+        Template: pallet_template::{Pallet, Call, Storage, Event<T>} = 254,
 
-        Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>} = 203,
+        Sudo: pallet_sudo::{Pallet, Call, Storage, Config<T>, Event<T>} = 255,
     }
 }
-
-// #[frame_support::runtime]
-// mod runtime {
-//     #[runtime::runtime]
-//     #[runtime::derive(
-//         RuntimeCall,
-//         RuntimeEvent,
-//         RuntimeError,
-//         RuntimeOrigin,
-//         RuntimeFreezeReason,
-//         RuntimeHoldReason,
-//         RuntimeSlashReason,
-//         RuntimeLockId,
-//         RuntimeTask
-//     )]
-//     pub struct Runtime;
-
-//     #[runtime::pallet_index(0)]
-//     pub type System = frame_system;
-
-//     #[runtime::pallet_index(1)]
-//     pub type Timestamp = pallet_timestamp;
-
-//     #[runtime::pallet_index(2)]
-//     pub type Aura = pallet_aura;
-
-//     #[runtime::pallet_index(3)]
-//     pub type Grandpa = pallet_grandpa;
-
-//     #[runtime::pallet_index(4)]
-//     pub type Balances = pallet_balances;
-
-//     #[runtime::pallet_index(5)]
-//     pub type TransactionPayment = pallet_transaction_payment;
-
-//     #[runtime::pallet_index(6)]
-//     pub type Sudo = pallet_sudo;
-
-//     // // BEEFY Bridges support.
-//     // #[runtime::pallet_index(7)]
-//     // pub type Beefy = pallet_beefy;
-
-//     // MMR leaf construction must be before session in order to have leaf contents
-//     // refer to block<N-1> consistently. see substrate issue #11797 for details.
-//     // #[runtime::pallet_index(8)]
-//     // pub type Mmr = pallet_mmr;
-
-//     // #[runtime::pallet_index(9)]
-//     // pub type BeefyMmrLeaf = pallet_beefy_mmr;
-
-//     // Include the custom logic from the pallet-template in the runtime.
-//     #[runtime::pallet_index(10)]
-//     pub type TemplateModule = pallet_template;
-// }
 
 /// The address format for describing accounts.
 pub type Address = sp_runtime::MultiAddress<AccountId, ()>;
@@ -737,7 +672,8 @@ impl_runtime_apis! {
 
         impl beefy_primitives::BeefyApi<Block, BeefyId> for Runtime {
         fn beefy_genesis() -> Option<BlockNumber> {
-            Beefy::genesis_block()
+            // Beefy::genesis_block()
+            None
         }
 
         fn validator_set() -> Option<beefy_primitives::ValidatorSet<BeefyId>> {
@@ -767,9 +703,10 @@ impl_runtime_apis! {
         ) -> Option<beefy_primitives::OpaqueKeyOwnershipProof> {
             use codec::Encode;
 
-            Historical::prove((beefy_primitives::KEY_TYPE, authority_id))
-                .map(|p| p.encode())
-                .map(beefy_primitives::OpaqueKeyOwnershipProof::new)
+            // Historical::prove((beefy_primitives::KEY_TYPE, authority_id))
+            //     .map(|p| p.encode())
+            //     .map(beefy_primitives::OpaqueKeyOwnershipProof::new)
+            None
         }
     }
 
