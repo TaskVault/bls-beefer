@@ -1,5 +1,5 @@
 use sc_service::ChainType;
-use solochain_template_runtime::{AccountId, RuntimeGenesisConfig, Signature, WASM_BINARY};
+use bls_beefer_runtime::{AccountId, RuntimeGenesisConfig, Signature, WASM_BINARY};
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
