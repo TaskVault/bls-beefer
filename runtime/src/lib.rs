@@ -90,7 +90,6 @@ pub mod opaque {
         pub struct SessionKeys {
             pub aura: Aura,
             pub grandpa: Grandpa,
-            pub beefy: Beefy,
         }
     }
 }
@@ -670,7 +669,7 @@ impl_runtime_apis! {
         }
     }
 
-        impl beefy_primitives::BeefyApi<Block, BeefyId> for Runtime {
+    impl beefy_primitives::BeefyApi<Block, BeefyId> for Runtime {
         fn beefy_genesis() -> Option<BlockNumber> {
             // Beefy::genesis_block()
             None
@@ -683,8 +682,8 @@ impl_runtime_apis! {
         fn submit_report_equivocation_unsigned_extrinsic(
             equivocation_proof: beefy_primitives::DoubleVotingProof<
                 BlockNumber,
-                BeefyId,
-                BeefySignature,
+            BeefyId,
+            BeefySignature,
             >,
             key_owner_proof: beefy_primitives::OpaqueKeyOwnershipProof,
         ) -> Option<()> {
@@ -737,12 +736,12 @@ impl_runtime_apis! {
         }
 
         fn verify_proof(leaves: Vec<mmr::EncodableOpaqueLeaf>, proof: mmr::LeafProof<mmr::Hash>)
-            -> Result<(), mmr::Error>
+                        -> Result<(), mmr::Error>
         {
             let leaves = leaves.into_iter().map(|leaf|
-                leaf.into_opaque_leaf()
-                .try_decode()
-                .ok_or(mmr::Error::Verify)).collect::<Result<Vec<mmr::Leaf>, mmr::Error>>()?;
+                                                leaf.into_opaque_leaf()
+                                                .try_decode()
+                                                .ok_or(mmr::Error::Verify)).collect::<Result<Vec<mmr::Leaf>, mmr::Error>>()?;
             Mmr::verify_leaves(leaves, proof)
         }
 
@@ -765,5 +764,4 @@ impl_runtime_apis! {
             BeefyMmrLeaf::next_authority_set_proof()
         }
     }
-
 }

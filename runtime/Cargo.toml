@@ -1,6 +1,6 @@
 [package]
-name = "bls-beefer-runtime"
-description = "Runtime for BLS Beefer demos generation of BLS Signature with BEEFY"
+name = "solochain-template-runtime"
+description = "A solochain runtime template built with Substrate, part of Polkadot Sdk. (polkadot v1.12.0)"
 version = "0.1.0"
 license = "MIT-0"
 authors.workspace = true
@@ -125,7 +125,6 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-grandpa/runtime-benchmarks",
-	"pallet-mmr/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-template/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -139,14 +138,10 @@ try-runtime = [
 	"frame-try-runtime/try-runtime",
 	"pallet-aura/try-runtime",
 	"pallet-balances/try-runtime",
-	"pallet-beefy-mmr/try-runtime",
-	"pallet-beefy/try-runtime",
 	"pallet-grandpa/try-runtime",
-	"pallet-mmr/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-template/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",
 ]
-
