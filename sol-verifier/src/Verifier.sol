@@ -9,7 +9,7 @@ contract Verifier {
     using B12_381Lib for B12.G1Point;
     using B12_381Lib for B12.G2Point;
 
-    B12.G2Point private NEGATED_G2_GENERATOR;
+    B12.G2Point public NEGATED_G2_GENERATOR;
 
     constructor() public {
         B12.Fp2 memory x = B12.Fp2(
@@ -32,6 +32,30 @@ contract Verifier {
         B12.G1Point memory messageHash = B12.parseG1(messageHashBytes, 0);
         B12.G2Point memory publicKey = B12.parseG2(publicKeyBytes, 0);
         B12.G1Point memory signature = B12.parseG1(signatureBytes, 0);
+
+        // Verify the signature
+        B12.PairingArg[] memory args = new B12.PairingArg[](2);
+        args[0] = B12.PairingArg(messageHash, publicKey);
+        args[1] = B12.PairingArg(signature, NEGATED_G2_GENERATOR);
+        return B12_381Lib.pairing(args);
+    }
+
+    function verifySignatureUint256(
+        uint256 messageHashX,
+        uint256 messageHashY,
+        uint256 publicKeyX1,
+        uint256 publicKeyX2,
+        uint256 publicKeyY1,
+        uint256 publicKeyY2,
+        uint256 signatureX,
+        uint256 signatureY
+    ) public view returns (bool) {
+        B12.G1Point memory messageHash = B12.G1Point(messageHashX, messageHashY);
+        B12.G2Point memory publicKey = B12.G2Point(
+            B12.Fp2(B12.Fp(publicKeyX1), B12.Fp(publicKeyX2)),
+            B12.Fp2(B12.Fp(publicKeyY1), B12.Fp(publicKeyY2))
+        );
+        B12.G1Point memory signature = B12.G1Point(signatureX, signatureY);
 
         // Verify the signature
         B12.PairingArg[] memory args = new B12.PairingArg[](2);
