@@ -8022,6 +8022,7 @@ dependencies = [
  "pallet-beefy-mmr",
  "pallet-grandpa",
  "pallet-mmr",
+ "pallet-session",
  "pallet-sudo",
  "pallet-template",
  "pallet-timestamp",

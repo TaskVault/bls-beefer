@@ -248,6 +248,39 @@ impl pallet_transaction_payment::Config for Runtime {
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
+/// Special `ValidatorIdOf` implementation that is just returning the input as result.
+pub struct ValidatorIdOf;
+impl sp_runtime::traits::Convert<AccountId, Option<AccountId>> for ValidatorIdOf {
+    fn convert(a: AccountId) -> Option<AccountId> {
+        Some(a)
+    }
+}
+
+pub const PERIOD: u32 = 6 * HOURS;
+pub const OFFSET: u32 = 0;
+
+impl_opaque_keys! {
+    pub struct SessionKeys {
+        pub aura: Aura,
+    }
+}
+
+impl pallet_session::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type ValidatorId = <Self as frame_system::Config>::AccountId;
+    // we don't have stash and controller, thus we don't need the convert as well.
+    type ValidatorIdOf = ValidatorIdOf;
+    type ShouldEndSession = pallet_session::PeriodicSessions<ConstU32<PERIOD>, ConstU32<OFFSET>>;
+    type NextSessionRotation = pallet_session::PeriodicSessions<ConstU32<PERIOD>, ConstU32<OFFSET>>;
+    // type SessionManager = CollatorSelection;
+    type SessionManager = ();
+    // type SessionManager = pallet_session::historical::NoteHistoricalRoot<Self, ValidatorManager>;
+    // Essentially just Aura, but let's be pedantic.
+    type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
+    type Keys = SessionKeys;
+    type WeightInfo = ();
+}
+
 impl pallet_sudo::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
@@ -357,15 +390,15 @@ construct_runtime! {
         Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 5,
         TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 32,
 
+        Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
+        Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config<T>, Event, ValidateUnsigned} = 11,
+
         // BEEFY Bridges support.
         Beefy: pallet_beefy::{Pallet, Call, Storage, Config<T>, ValidateUnsigned} = 200,
         // MMR leaf construction must be before session in order to have leaf contents
         // refer to block<N-1> consistently. see substrate issue #11797 for details.
         Mmr: pallet_mmr::{Pallet, Storage} = 201,
         BeefyMmrLeaf: pallet_beefy_mmr::{Pallet, Storage} = 202,
-
-        // Session: pallet_session::{Pallet, Call, Storage, Event, Config<T>} = 9,
-        Grandpa: pallet_grandpa::{Pallet, Call, Storage, Config<T>, Event, ValidateUnsigned} = 11,
 
         Template: pallet_template::{Pallet, Call, Storage, Event<T>} = 254,
 
