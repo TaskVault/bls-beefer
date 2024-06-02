@@ -89,6 +89,7 @@ pub mod opaque {
     impl_opaque_keys! {
         pub struct SessionKeys {
             pub aura: Aura,
+            pub beefy: Beefy,
             pub grandpa: Grandpa,
         }
     }
@@ -200,9 +201,9 @@ impl pallet_grandpa::Config for Runtime {
     type WeightInfo = ();
     type MaxAuthorities = ConstU32<32>;
     type MaxNominators = ConstU32<0>;
-    type MaxSetIdSessionEntries = ConstU64<0>;
+    type MaxSetIdSessionEntries = ConstU64<256>;
 
-    type KeyOwnerProof = sp_core::Void;
+    type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem = ();
 }
 
@@ -256,12 +257,15 @@ impl sp_runtime::traits::Convert<AccountId, Option<AccountId>> for ValidatorIdOf
     }
 }
 
-pub const PERIOD: u32 = 6 * HOURS;
-pub const OFFSET: u32 = 0;
+pub const PERIOD: u32 = 3;
+pub const OFFSET: u32 = 1;
 
 impl_opaque_keys! {
     pub struct SessionKeys {
         pub aura: Aura,
+        // pub babe: Babe,
+        pub grandpa: Grandpa,
+        pub beefy: Beefy,
     }
 }
 
@@ -310,7 +314,7 @@ impl pallet_beefy::Config for Runtime {
     type OnNewValidatorSet = BeefyMmrLeaf;
     type WeightInfo = ();
 
-    type KeyOwnerProof = sp_core::Void;
+    type KeyOwnerProof = sp_session::MembershipProof;
     type EquivocationReportSystem = ();
 }
 
@@ -325,10 +329,10 @@ impl pallet_mmr::Config for Runtime {
     const INDEXING_PREFIX: &'static [u8] = mmr::INDEXING_PREFIX;
     type Hashing = Keccak256;
     // type OnNewRoot = pallet_beefy_mmr::DepositBeefyDigest<Runtime>;
-    type OnNewRoot = ();
+    type OnNewRoot = pallet_beefy_mmr::DepositBeefyDigest<Runtime>;
     type WeightInfo = ();
     // type LeafData = pallet_beefy_mmr::Pallet<Runtime>;
-    type LeafData = ();
+    type LeafData = pallet_beefy_mmr::Pallet<Runtime>;
     type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
 }
 
