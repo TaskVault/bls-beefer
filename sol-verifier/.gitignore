@@ -1,6 +1,9 @@
 # Compiler files
 cache/
 out/
+src/artifacts/
+.states/
+.deploys/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -12,5 +15,3 @@ docs/
 
 # Dotenv file
 .env
-
-src/artifacts/
